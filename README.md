@@ -4,6 +4,8 @@ A two-sided book template for doctoral theses in [Typst](https://typst.app),
 written for a physics PhD thesis at the University of Amsterdam. It is a single
 self-contained file (`template/thesis.typ`) with no package dependencies.
 
+See [`example.pdf`](example.pdf) for the rendered example thesis.
+
 ## Features
 
 - Front, main and back matter with roman and arabic folios
