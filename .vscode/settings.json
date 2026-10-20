@@ -1,0 +1,6 @@
+{
+  // Same fonts as build.py: only ./fonts (+ Typst's built-ins), so the
+  // editor preview and the exported PDF match.
+  "tinymist.fontPaths": ["${workspaceFolder}/fonts"],
+  "tinymist.systemFonts": false
+}
