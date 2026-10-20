@@ -15,7 +15,7 @@
 #page(numbering: none, header: none, foreground: none, fill: luma(95%))[
   #set text(size: 10pt)
   This page is the reverse of the title page. In a thesis it carries the
-  copyright line, the ISBN, the printer and the funding acknowledgement.
+  copyright line, the printer and the funding acknowledgement.
   #v(1fr)
   #text(size: 9pt)[
     Released under the Creative Commons Attribution 4.0 International license.

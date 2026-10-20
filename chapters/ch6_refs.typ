@@ -44,4 +44,4 @@ Theses built on published papers usually need a page listing each paper and the 
 
 == Title pages and summaries <sec:refs-title>
 
-`frontmatter/titlepage.typ` holds the title page and its reverse (copyright, ISBN, printer, funding). Universities often supply an official title page that must be used unchanged; place it there. The summaries and acknowledgements in `backmatter/` are ordinary files with an unnumbered heading.
+`frontmatter/titlepage.typ` holds the title page and its reverse (copyright, printer, funding). Universities often supply an official title page that must be used unchanged; place it there. The summaries and acknowledgements in `backmatter/` are ordinary files with an unnumbered heading.
