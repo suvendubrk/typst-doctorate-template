@@ -19,10 +19,15 @@
 
 // ---- main matter ----
 #mainmatter[
-  #part[The First Part]
-  #include "chapters/ch1_example.typ"
-  #part[The Second Part]
-  #include "chapters/ch2_example.typ"
+  #part[Using the Template]
+  #include "chapters/ch1_start.typ"
+  #include "chapters/ch2_structure.typ"
+  #include "chapters/ch3_config.typ"
+  #include "chapters/ch4_maths.typ"
+  #include "chapters/ch5_floats.typ"
+  #include "chapters/ch6_refs.typ"
+  #part[Changing the Template]
+  #include "chapters/ch7_internals.typ"
 ]
 
 // ---- back matter ----

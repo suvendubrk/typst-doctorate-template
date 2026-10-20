@@ -2,4 +2,4 @@
 
 #heading(numbering: none)[Samenvatting]
 
-Samenvatting in het Nederlands, met de titel van het proefschrift.
+De Nederlandse samenvatting van het proefschrift, met de titel ervan.

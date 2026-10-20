@@ -1,9 +1,9 @@
 // =============================================================================
 //  preview.typ — preview ONE file on its own, with the real thesis styling.
 //
-//  CLI:    typst compile preview.typ out.pdf --input file=chapters/ch1_example.typ
+//  CLI:    typst compile preview.typ out.pdf --input file=chapters/ch1_start.typ
 //  Python: typst.compile("preview.typ", output="out.pdf",
-//                        sys_inputs={"file": "chapters/ch1_example.typ"})
+//                        sys_inputs={"file": "chapters/ch1_start.typ"})
 //
 //  Defaults to chapter 1 if no file is given.
 // =============================================================================
@@ -32,7 +32,7 @@
   }
 }
 
-#let target = sys.inputs.at("file", default: "/chapters/ch1_example.typ")
+#let target = sys.inputs.at("file", default: "/chapters/ch1_start.typ")
 #include target
 
 #pagebreak()

@@ -4,7 +4,9 @@ A two-sided book template for doctoral theses in [Typst](https://typst.app),
 written for a physics PhD thesis at the University of Amsterdam. It is a single
 self-contained file (`template/thesis.typ`) with no package dependencies.
 
-See [`example.pdf`](example.pdf) for the rendered example thesis.
+**Read the [author's guide (PDF)](guide.pdf).** It is set with the template
+itself and documents every command (source next to result), all options of
+`thesis()`, and how the template code works so that you can change it.
 
 ## Features
 
@@ -34,7 +36,7 @@ preview.typ         render one chapter alone, with the real styling
 meta.typ            shared settings and macros; every file imports this
 template/           the template itself and the citation style
 frontmatter/        title pages, preface
-chapters/           one file per chapter
+chapters/           one file per chapter (the guide; replace with yours)
 backmatter/         contributions, summaries, acknowledgements
 references.bib      bibliography
 fonts/              optional fonts (not included, see below)
@@ -44,11 +46,17 @@ Fonts, paper size, margins, colours and numbering are arguments of `thesis()`,
 set once in `meta.typ` (`conf`). The comments at the top of
 `template/thesis.typ` list every option.
 
+## Starting your own thesis
+
+Keep the folder structure, delete the guide chapters and `chapters/_guide.typ`,
+list your own chapters in `main.typ`, and set title, author, fonts and page
+size in `meta.typ`.
+
 ## Building
 
 ```sh
 typst compile --font-path fonts --ignore-system-fonts main.typ
-typst compile --font-path fonts preview.typ --input file=chapters/ch1_example.typ
+typst compile --font-path fonts preview.typ --input file=chapters/ch4_maths.typ
 ```
 
 or `python3 build.py` (needs `pip install typst`). The VS Code settings in

@@ -2,4 +2,4 @@
 
 #heading(numbering: none)[Acknowledgements]
 
-Thanks.
+The acknowledgements of a thesis go here.

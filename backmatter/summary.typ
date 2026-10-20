@@ -2,4 +2,4 @@
 
 #heading(numbering: none)[Summary]
 
-Summary in English, bearing the title of the thesis.
+The English summary of a thesis goes here, bearing the title of the thesis.

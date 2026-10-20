@@ -19,7 +19,7 @@
 All chapters of this thesis were written under the supervision of ...
 
 #entry(
-  [@ch:example: An example chapter],
+  [@ch:start: Getting started],
   [*Y. Name*, A. Coauthor and B. Supervisor],
   [Journal Name 1, 100 (2026)],
   doi: "10.0000/example", arxiv: "0000.00000",

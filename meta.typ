@@ -145,8 +145,8 @@
 //  so a chapter always previews with the same look it has in the final build.
 #let conf = thesis.with(
   // ---- PDF metadata ---------------------------------------------------------
-  title: "Thesis title",
-  author: "Your Name",
+  title: "typst-doctorate-template: Author's guide",
+  author: "Suvendu Kumar Barik",
   // ---- FONTS: change these to use any installed font -----------------------
   //  A list gives fallbacks. Fonts not built into Typst go in ./fonts and are
   //  found with: typst compile --font-path fonts main.typ  (see README).

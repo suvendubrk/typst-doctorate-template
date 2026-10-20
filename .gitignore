@@ -3,4 +3,4 @@
 __pycache__/
 fonts/*.otf
 fonts/*.ttf
-!example.pdf
+!guide.pdf
