@@ -72,7 +72,7 @@
 //    concept[..] / highlight-box[..]    tinted box for a key idea
 //    boxeq[..]                          boxed display equation
 //    nonumeq[..]                        suppress equation numbers inside
-//    breakeq[..]                        let a numbered display split across pages
+//    breakeq[..] / nobreakeq[..]        let a numbered display split across pages, or not
 //    subfigure(..)                      (a), (b), … grid under one caption
 //    btable(header:, highlight:, ..)    booktabs-style table
 //    ket bra bigO                       Dirac brackets / order symbol
@@ -94,7 +94,8 @@
 #let _chapraise = state("thesis-chap-raise", -1.1cm)       // chapter-title vertical shift
 #let _mtoc      = state("thesis-minitoc-next", auto)       // per-chapter mini-TOC override
 #let _pstart    = state("thesis-part-start", 1)            // physical page a divider begins on
-#let _eqbreak   = state("thesis-eq-break", false)          // true inside breakeq[..]
+#let _eqbreak   = state("thesis-eq-break", auto)           // true in breakeq, false in nobreakeq
+#let _tabcolors = state("thesis-tab-colors", none)         // per-chapter tab colours, or none
 
 // Invisible marker emitted by backmatter(): chapter tabs (and the running
 // header) stop at the first page carrying it.
@@ -361,12 +362,24 @@
 //  § 3  CONTENT HELPERS — boxes, equations, subfigures, spacing
 // =============================================================================
 
+// The tab colour of the chapter at the current position (the n-th numbered
+// chapter takes the n-th entry of `tab-colors`, cycling), or the accent when
+// no tab colours are set or outside the chapters. Must be called in a context.
+#let _chapter-color() = {
+  let cols = _tabcolors.get()
+  let n = query(selector(heading.where(level: 1)).before(here()))
+    .filter(h => h.numbering != none).len()
+  if cols == none or n == 0 { _accent.get() } else { cols.at(calc.rem(n - 1, cols.len())) }
+}
+
 // A single understated tinted box to flag a key idea (a thesis, not a
-// textbook). Title is optional; the colour defaults to the theme accent.
+// textbook). Title is optional; the colour defaults to the chapter's tab
+// colour (or the theme accent): a light tint for the fill, the colour itself
+// for the bar.
 //   #concept[Energy is conserved.]
 //   #concept(title: "Main result")[ ... ]
 #let concept(body, title: none, color: none) = context {
-  let c = if color != none { color } else { _accent.get() }
+  let c = if color != none { color } else { _chapter-color() }
   let ins = 12pt
   block(
     width: 100%, breakable: true, above: 0.9em, below: 0.9em,
@@ -386,7 +399,7 @@
 // A display equation inside a rounded, accent-tinted frame:
 //   #boxeq[$ x = y $]
 #let boxeq(body) = context {
-  let c = _accent.get()
+  let c = _chapter-color()
   align(center, box(stroke: 0.8pt + c.transparentize(60%), radius: 4pt, inset: (x: 10pt, y: 8pt), fill: c.lighten(95%), body))
 }
 
@@ -395,9 +408,13 @@
 #let nonumeq(body) = { set math.equation(numbering: none); body }
 
 // Let a numbered display split across pages at its line breaks, whatever its
-// height (see eq-break-height). The number is set once, beside the last line.
+// height. The number is set once, beside the last line. With the global
+// option `eq-break: true` every numbered display behaves like this, and
+// nobreakeq keeps a single one whole instead.
 //   #breakeq[$ a &= b \ &= c $ <eq:label>]
-#let breakeq(body) = { _eqbreak.update(true); body; _eqbreak.update(false) }
+//   #nobreakeq[$ a &= b \ &= c $]
+#let breakeq(body) = { _eqbreak.update(true); body; _eqbreak.update(auto) }
+#let nobreakeq(body) = { _eqbreak.update(false); body; _eqbreak.update(auto) }
 
 // Small horizontal-space helpers for fine-tuning maths (widths in em match
 // the TeX \!, \negmedspace, and \; conventions).
@@ -425,18 +442,46 @@
 //   highlight: 1-based body-row indices to tint softly (1 = first data row)
 //   inset:     cell padding; narrow it for a wide table instead of letting cells wrap
 //   ..rows:    the body cells, row-major (like the built-in `table`)
+// The rules and the row tint follow the chapter's tab colour. A table must stay
+// a plain `table` for figure() to number it as a Table, so it cannot read the
+// colour itself (that needs `context`); it is drawn with placeholder colours
+// that a show rule in thesis() swaps for the chapter's (see _btable-colors).
+#let _bt-tint  = rgb("#010203")   // placeholder: highlighted-row fill
+#let _bt-heavy = rgb("#010204")   // placeholder: top and bottom rules
+#let _bt-light = rgb("#010205")   // placeholder: rule under the header
 #let btable(columns: 3, align: center + horizon, inset: (x: 12pt, y: 7pt), header: (), highlight: (), ..rows) = table(
   columns: columns,
   align: align,
   inset: inset,
   stroke: none,
-  fill: (x, y) => if highlight.contains(y) { rgb("#9F3D1A").transparentize(95%) } else { none },
-  table.hline(stroke: 0.7pt + luma(20%)),
+  fill: (x, y) => if highlight.contains(y) { _bt-tint } else { none },
+  table.hline(stroke: 0.7pt + _bt-heavy),
   table.header(..header),
-  table.hline(stroke: 0.4pt + luma(40%)),
+  table.hline(stroke: 0.4pt + _bt-light),
   ..rows,
-  table.hline(stroke: 0.7pt + luma(20%)),
+  table.hline(stroke: 0.7pt + _bt-heavy),
 )
+
+// Replace the placeholder colours of a btable with shades of `c`. Tables
+// without placeholders are returned unchanged.
+#let _btable-colors(it, c) = {
+  let swap(paint) = if paint == _bt-tint { c.lighten(88%) }
+    else if paint == _bt-heavy { c.darken(25%) }
+    else if paint == _bt-light { c.lighten(30%) }
+    else { paint }
+  let kids = it.children.map(k => {
+    if k.func() == table.hline and type(k.stroke) == stroke and k.stroke.paint in (_bt-heavy, _bt-light) {
+      table.hline(stroke: k.stroke.thickness + swap(k.stroke.paint))
+    } else { k }
+  })
+  let marked = kids != it.children
+  if not marked { return it }
+  let f = it.fields()
+  let _ = f.remove("children")
+  let old = f.at("fill", default: none)
+  if type(old) == function { f.fill = (x, y) => { let v = old(x, y); if v == none { none } else { swap(v) } } }
+  table(..f, ..kids)
+}
 
 // Common maths notation (physics). ket/bra render Dirac brackets; bigO is an
 // upright order symbol that never collides with an italic variable O.
@@ -778,7 +823,11 @@
                               //  = equation. E.g. "1.1", "[1.1]", "(1.1)"
   eq-numbering-appendix: auto, // appendix format "(<ch>.<letter>.<eq>)"; auto =
                               //  eq-numbering with a lettered middle level
-  eq-break-height: 9cm,       // numbered displays shorter than this never split
+  eq-break: false,            // true: every numbered display may split across
+                              //  pages at its line breaks, its number set once
+                              //  beside the last line (as inside breakeq)
+  eq-break-height: 9cm,       // with eq-break: false, numbered displays shorter
+                              //  than this never split
                               //  across pages (Typst would repeat the number on
                               //  both pieces); none = all may split
   eq-num-gap: 1em,            // least space between a formula and its number;
@@ -836,9 +885,11 @@
     if it.numbering == none { return it }
     let bare = math.equation(block: true, numbering: none, it.body)
     let size = measure(bare)
-    let force-break = _eqbreak.get()
-    if not force-break and eq-break-height != none and size.height >= eq-break-height.to-absolute() { return it }
-    set block(breakable: false) if eq-break-height != none and not force-break
+    // Local choice (breakeq / nobreakeq) first, else the global eq-break.
+    let mode = _eqbreak.get()
+    let force-break = if mode == auto { eq-break } else { mode }
+    if mode == auto and not force-break and eq-break-height != none and size.height >= eq-break-height.to-absolute() { return it }
+    set block(breakable: false) if not force-break and (eq-break-height != none or mode == false)
     let num = if eq-per-chapter { _eq-num(here(), eq-numbering, eq-numbering-app) }
               else { numbering(it.numbering, ..counter(math.equation).get()) }
     let w = size.width
@@ -971,6 +1022,8 @@
   // float above. Image figures keep floating.
   show figure.where(kind: table): set figure(placement: none)
   show figure.where(kind: table): set block(breakable: true)
+  // btable rules and row tints in the chapter's tab colour (see btable).
+  show table: it => context _btable-colors(it, _chapter-color())
 
   // Per-chapter figure & table numbers: "Figure 2.3" / "Table 2.3" (or an
   // appendix "2.A.3"). The counters restart each chapter in the level-1 heading
@@ -1147,6 +1200,7 @@
 
   // ---- Publish the configuration to the shared state ---------------------------
   _accent.update(accent)
+  _tabcolors.update(tab-colors)
   _headfont.update(heading-font)
   _chapraise.update(chapter-raise)
 

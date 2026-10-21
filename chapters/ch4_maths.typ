@@ -41,13 +41,19 @@ $ Z = sum_(n=0)^infinity (-1)^n binom(2n, n) x^n y^(2n) exp(-beta E_n) cos(n the
 
 === Page breaks
 
-A numbered display of ordinary height is never split between two pages; it moves to the next page whole, because Typst would otherwise print its number on both pieces. Only displays taller than `eq-break-height` may split. To let one particular display split at its line breaks, wrap it in `breakeq`. Its number is then drawn once, next to its last line.
+By default, a numbered display of ordinary height is never split between two pages; it moves to the next page whole, because Typst would otherwise print its number on both pieces. Only displays taller than `eq-break-height` may split. To let one particular display split at its line breaks, wrap it in `breakeq`. Its number is then drawn once, next to its last line.
+
+The choice can also be made for the whole document: with `eq-break: true` in `conf`, every numbered display may split in this way, and `nobreakeq` keeps a single one whole.
 
 #example(```typ
 #breakeq[$
   f(x) &= a_0 + a_1 x + a_2 x^2 + a_3 x^3 \
        &quad + a_4 x^4 + a_5 x^5 + a_6 x^6 + dots
 $ <eq:maths-long>]
+#nobreakeq[$
+  g(x) &= b_0 + b_1 x \
+       &quad + b_2 x^2 + dots
+$]
 ```)
 
 == Inline formulas <sec:maths-inline>

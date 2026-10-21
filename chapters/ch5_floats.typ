@@ -37,7 +37,7 @@ Several panels share one number and caption with `subfigure`. The panels are lab
 
 == Tables <sec:floats-tables>
 
-`btable` draws a table in the style of LaTeX's `booktabs`: no vertical rules, heavy rules at the top and bottom, a light rule under the header. Rows can be tinted with `highlight` (1 is the first body row), and `inset` narrows the cells of a wide table.
+`btable` draws a table in the style of LaTeX's `booktabs`: no vertical rules, heavy rules at the top and bottom, a light rule under the header. Rows can be tinted with `highlight` (1 is the first body row), and `inset` narrows the cells of a wide table. Rules and tints take the tab colour of the chapter (or the accent when `tab-colors` is not set).
 
 #example(```typ
 #figure(
@@ -57,7 +57,7 @@ Tables in a figure are numbered "Table 5.1" independently of figures. Unlike ima
 
 == Boxes <sec:floats-boxes>
 
-`concept` (alias `highlight-box`) sets a key idea in a tinted box with a bar in the accent colour. Equations inside keep the full width, so their numbers align with the others.
+`concept` (alias `highlight-box`) sets a key idea in a box tinted with a light shade of the chapter's tab colour, with a bar in the colour itself; without `tab-colors` the accent is used, and `color:` sets any other. `boxeq` follows the same colour. Equations inside keep the full width, so their numbers align with the others.
 
 #example(```typ
 #concept(title: "Main result")[

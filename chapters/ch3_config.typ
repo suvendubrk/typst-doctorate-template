@@ -40,7 +40,7 @@ The accent colour (chapter kickers, rules, tabs, mini-TOC) comes from a named th
   [`modern`], [#box(width: 2.5em, height: 0.8em, fill: themes.modern) `#073929`],
 )
 
-New themes are added to the dictionary `themes` in the template (@sec:internals-recipes). With `tab-colors`, each chapter gets its own tab colour; the list is cycled when there are more chapters than colours.
+New themes are added to the dictionary `themes` in the template (@sec:internals-recipes). With `tab-colors`, each chapter gets its own tab colour; the list is cycled when there are more chapters than colours. The highlight boxes, framed equations and `btable` rules of a chapter follow its tab colour (@ch:floats).
 
 == All options <sec:config-options>
 
@@ -78,7 +78,8 @@ New themes are added to the dictionary `themes` in the template (@sec:internals-
   [`eq-per-chapter`], [`true`], [Number per chapter, (2.4), and per appendix, (2.A.4).],
   [`eq-numbering`], [`"(1.1)"`], [Format: first symbol chapter, second equation.],
   [`eq-numbering-appendix`], [`auto`], [Appendix format; `auto` adds a lettered level.],
-  [`eq-break-height`], [`9cm`], [Numbered displays shorter than this never split across pages.],
+  [`eq-break`], [`false`], [`true`: every numbered display may split across pages, number once beside the last line.],
+  [`eq-break-height`], [`9cm`], [With `eq-break: false`, numbered displays shorter than this never split.],
   [`eq-num-gap`], [`1em`], [Least space between a formula and its number.],
   table.cell(colspan: 3)[_Inline maths_],
   [`inline-flush`], [`9em`], [Inline formulas up to this width keep the line spacing even.],

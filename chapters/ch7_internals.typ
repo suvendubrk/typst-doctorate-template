@@ -67,7 +67,8 @@ Commands such as `concept` or `minitoc` are called inside chapters, far from the
   [`_apphead`, `_ispart`], [True exactly at an appendix heading or a part heading, so the heading rules can tell them from chapters.],
   [`_mtoc`], [The per-chapter mini-TOC override set by `minitoc-next`.],
   [`_pstart`], [Page on which a part divider starts, to uncount its pages.],
-  [`_eqbreak`], [True inside `breakeq`.],
+  [`_eqbreak`], [`true` inside `breakeq`, `false` inside `nobreakeq`, `auto` elsewhere (the option `eq-break` decides).],
+  [`_tabcolors`], [The list `tab-colors`, from which `_chapter-color()` picks the colour of the current chapter for boxes and tables.],
 )
 
 Two invisible markers complete the picture: `backmatter()` places one (`<thesis-tabstop>`) where side tabs and the running header must stop, and every part-divider page carries another (`<thesis-divpage>`).
@@ -82,9 +83,12 @@ The show rule for level-one headings (§ 6) resets the counters of equations, fi
 
 The show rule for numbered displays measures the formula without its number and then decides:
 
-+ If the display is taller than `eq-break-height`, or sits inside `breakeq`, it may split across pages. Inside `breakeq` the number is drawn only once, by measuring the last line and placing the number beside it.
-+ Otherwise the display is made unbreakable.
++ The local choice is read first: `breakeq` forces a split, `nobreakeq` keeps the display whole; elsewhere the option `eq-break` decides.
++ A display that may split is drawn without Typst's number, and the number is placed once, beside the last line, whose height is measured from the formula (the last line may sit inside a bracket group spanning several lines).
++ With `eq-break: false`, a display taller than `eq-break-height` is left to Typst, and all others are made unbreakable.
 + If formula and number fit with `eq-num-gap` on both sides, the display is left as Typst draws it; if they fit only with the formula moved left, a grid places them side by side; otherwise the number goes below.
+
+A table has to remain a plain `table` for `figure` to number it as a table, so `btable` cannot read the chapter colour itself, which needs `context`. It draws its rules and tints in placeholder colours instead, and a show rule on `table` in `thesis()` replaces them with shades of the chapter's colour (`_btable-colors`).
 
 Inline formulas are boxed at the height of a capital letter so that they do not change the line spacing (`inline-flush`). Before boxing, the rule measures how far the formula really reaches; only the part beyond `inline-reach` is added back as invisible struts, which open that one line as much as needed.
 
