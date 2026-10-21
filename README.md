@@ -1,8 +1,8 @@
 # typst-doctorate-template
 
 A two-sided book template for doctoral theses in [Typst](https://typst.app),
-written for a physics PhD thesis at the University of Amsterdam. It is a single
-self-contained file (`template/thesis.typ`) with no package dependencies.
+written for a physics PhD thesis at the Institute of Physics, University of Amsterdam. 
+It is a singleself-contained file (`template/thesis.typ`) with no package dependencies.
 
 **Read the [author's guide (PDF)](guide.pdf).** It is set with the template
 itself and documents every command (source next to result), all options of
