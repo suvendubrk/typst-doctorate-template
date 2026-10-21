@@ -237,7 +237,12 @@
 // marked back-matter sections. Each entry is (kind, location). Needs context.
 #let _tab-entries() = {
   let marks = query(<thesis-tabpos>)
-  let front = marks.filter(m => m.value == "front").map(m => ("front", m.location()))
+  // Front-matter tabs start at the table of contents: sections before it (an
+  // abstract, a dedication with a heading) get none.
+  let toc = marks.filter(m => m.value == "toc")
+  let start = if toc.len() > 0 { toc.first().location().page() } else { 0 }
+  let front = marks.filter(m => m.value in ("front", "toc") and m.location().page() >= start)
+    .map(m => ("front", m.location()))
   let back  = marks.filter(m => m.value == "back").map(m => ("back", m.location()))
   let chaps = query(heading.where(level: 1)).filter(h => h.numbering != none)
     .map(h => ("chapter", h.location()))
@@ -571,7 +576,7 @@
 // headings) followed by the entries. `depth: none` lists every level.
 #let tableofcontents(title: [Contents], depth: none) = {
   pagebreak(weak: true)
-  context if _matter.get() in ("front", "back") { _tabmark(_matter.get()) }
+  context if _matter.get() == "front" { _tabmark("toc") } else if _matter.get() == "back" { _tabmark("back") }
   context {
     v(_chapraise.get())
     block(below: 0.9cm, width: 100%)[
