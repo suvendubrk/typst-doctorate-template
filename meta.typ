@@ -169,7 +169,7 @@
     rgb("#743d1b"), rgb("#bd8678"),
   ),
   // front- and back-matter tabs, from the table of contents on
-  tab-colors-front: (rgb("#6b201f"), rgb("#914845"), rgb("#a3705c")),
-  tab-colors-back: (rgb("#ab6694"), rgb("#6d5480"), rgb("#28558b"), rgb("#31685b"), rgb("#617d14"), rgb("#a4671e")),
+  tab-colors-front: (rgb("#5d78a9"), rgb("#8791ba"), rgb("#b7945e")),
+  tab-colors-back: (rgb("#ac525a"), rgb("#825070"), rgb("#3b6196"), rgb("#4a8088"), rgb("#ab8535"), rgb("#8e6956")),
   // flipbook: demo-flip,
 )
