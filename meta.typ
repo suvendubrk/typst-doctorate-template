@@ -168,5 +168,8 @@
     rgb("#536478"), rgb("#626333"), rgb("#8C8A6F"), rgb("#66671e"),
     rgb("#743d1b"), rgb("#bd8678"),
   ),
+  // front- and back-matter tabs, from the table of contents on
+  tab-colors-front: (rgb("#6b201f"), rgb("#914845"), rgb("#a3705c")),
+  tab-colors-back: (rgb("#ab6694"), rgb("#6d5480"), rgb("#28558b"), rgb("#31685b"), rgb("#617d14"), rgb("#a4671e")),
   // flipbook: demo-flip,
 )

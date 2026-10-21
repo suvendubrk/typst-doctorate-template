@@ -40,6 +40,8 @@ The accent colour (chapter kickers, rules, tabs, mini-TOC) comes from a named th
   [`modern`], [#box(width: 2.5em, height: 0.8em, fill: themes.modern) `#073929`],
 )
 
+The side tabs run from the table of contents to the bibliography: every unnumbered section of the front and back matter gets its own tab (labelled i, ii, … and I, II, …), between which the chapters sit. When there are more tabs than fit the page edge, they shrink. Giving the front and back matter colours that continue the chapter palette makes the edge of the printed book read as one band.
+
 New themes are added to the dictionary `themes` in the template (@sec:internals-recipes). With `tab-colors`, each chapter gets its own tab colour; the list is cycled when there are more chapters than colours. The highlight boxes, framed equations and `btable` rules of a chapter follow its tab colour (@ch:floats).
 
 == All options <sec:config-options>
@@ -74,6 +76,9 @@ New themes are added to the dictionary `themes` in the template (@sec:internals-
   [`tab-active-fill`], [`none`], [Tab colour; `none` uses the accent or `tab-colors`.],
   [`tab-label-color`], [`white`], [Label colour.],
   [`tab-colors`], [`none`], [One colour per chapter, cycled.],
+  [`tab-numbering-front`], [`"i"`], [Labels of the front-matter tabs.],
+  [`tab-numbering-back`], [`"I"`], [Labels of the back-matter tabs.],
+  [`tab-colors-front`, `tab-colors-back`], [`none`], [Colours of the front- and back-matter tabs; `none` continues the `tab-colors` cycle.],
   table.cell(colspan: 3)[_Equations_],
   [`eq-per-chapter`], [`true`], [Number per chapter, (2.4), and per appendix, (2.A.4).],
   [`eq-numbering`], [`"(1.1)"`], [Format: first symbol chapter, second equation.],

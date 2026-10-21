@@ -71,7 +71,7 @@ Commands such as `concept` or `minitoc` are called inside chapters, far from the
   [`_tabcolors`], [The list `tab-colors`, from which `_chapter-color()` picks the colour of the current chapter for boxes and tables.],
 )
 
-Two invisible markers complete the picture: `backmatter()` places one (`<thesis-tabstop>`) where side tabs and the running header must stop, and every part-divider page carries another (`<thesis-divpage>`).
+Three invisible markers complete the picture: `backmatter()` places one (`<thesis-tabstop>`) where the running header stops, every part-divider page carries another (`<thesis-divpage>`), and every front- or back-matter section that owns a side tab carries a third (`<thesis-tabpos>`, placed by `tableofcontents()` and by unnumbered level-one headings, with the matter read from the state `_matter`). `_tab-entries()` collects these and the chapters, in order, into the list of tabs.
 
 == Numbering <sec:internals-numbering>
 

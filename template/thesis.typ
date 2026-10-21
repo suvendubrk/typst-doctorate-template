@@ -96,6 +96,11 @@
 #let _pstart    = state("thesis-part-start", 1)            // physical page a divider begins on
 #let _eqbreak   = state("thesis-eq-break", auto)           // true in breakeq, false in nobreakeq
 #let _tabcolors = state("thesis-tab-colors", none)         // per-chapter tab colours, or none
+#let _matter    = state("thesis-matter", none)             // "front" | "main" | "back"
+
+// Marks a front- or back-matter section that gets its own side tab. Placed by
+// tableofcontents() and by every unnumbered level-1 heading in those matters.
+#let _tabmark(kind) = [#metadata(kind)<thesis-tabpos>]
 
 // Invisible marker emitted by backmatter(): chapter tabs (and the running
 // header) stop at the first page carrying it.
@@ -227,63 +232,94 @@
 #let _fig-num(el, fmt, fmt-app) = _chap-num(el.location(),
   counter(figure.where(kind: el.kind)).at(el.location()).first(), fmt, fmt-app)
 
-// On which page edge does the chapter tab sit here? Returns "right", "left",
-// or none (no tab: front matter, back matter). `side` is the user setting:
-// "outer" follows the recto/verso parity, "left"/"right" pin one edge.
-// Must be called inside a `context`.
-#let _tab-side-here(side) = {
-  let cur = here().page()
+// The sections that own a side tab, in document order: the marked front-
+// matter sections (from the table of contents on), the chapters, then the
+// marked back-matter sections. Each entry is (kind, location). Needs context.
+#let _tab-entries() = {
+  let marks = query(<thesis-tabpos>)
+  let front = marks.filter(m => m.value == "front").map(m => ("front", m.location()))
+  let back  = marks.filter(m => m.value == "back").map(m => ("back", m.location()))
   let chaps = query(heading.where(level: 1)).filter(h => h.numbering != none)
-  let stops = query(<thesis-tabstop>)
-  if stops.len() > 0 and cur >= stops.first().location().page() { return none }
-  if chaps.len() == 0 { return none }
-  if chaps.first().location().page() > cur { return none }   // in front matter
+    .map(h => ("chapter", h.location()))
+  front + chaps + back
+}
+
+// On which page edge does the tab sit here? Returns "right", "left", or none
+// (no tab: before the table of contents). `side` is the user setting:
+// "outer" follows the recto/verso parity, "left"/"right" pin one edge.
+// With main-only, only main-matter pages count (used by the flip-book).
+// Must be called inside a `context`.
+#let _tab-side-here(side, main-only: false) = {
+  let cur = here().page()
+  if main-only {
+    let chaps = query(heading.where(level: 1)).filter(h => h.numbering != none)
+    let stops = query(<thesis-tabstop>)
+    if stops.len() > 0 and cur >= stops.first().location().page() { return none }
+    if chaps.len() == 0 or chaps.first().location().page() > cur { return none }
+  } else {
+    let entries = _tab-entries()
+    if entries.len() == 0 or entries.first().at(1).page() > cur { return none }
+  }
   if side == "left" { "left" }
   else if side == "right" { "right" }
   else { if calc.odd(cur) { "right" } else { "left" } }
 }
 
 // Vertical thumb index on the page edge (drawn in the page background).
-// One 8 mm × 12 mm block per chapter; only the ACTIVE chapter's tab is filled
-// and carries a label, the rest stay invisible so the stack acts as a fixed
-// ruler down the edge. `pattern` is a numbering string ("1", "A", "i", …).
+// One block per tab: the front-matter sections (labelled with `front-pattern`),
+// the chapters (`pattern`), and the back-matter sections (`back-pattern`). Only
+// the ACTIVE tab is filled and labelled; the rest stay invisible, so the stack
+// acts as a fixed ruler down the edge. Tabs are 8 mm × 12 mm and shrink when
+// there are too many to fit the page.
 #let _side-tabs(
   accent: black, font: "Libertinus Serif", side: "outer",
-  pattern: "1", size: 9pt,
+  pattern: "1", front-pattern: "i", back-pattern: "I", size: 9pt,
   active-fill: none, label-color: white,
-  colors: none,
+  colors: none, front-colors: none, back-colors: none,
 ) = context {
   let tab-side = _tab-side-here(side)
   if tab-side == none { return none }
   let cur = here().page()
-
-  // Chapters that get a tab: numbered level-1 headings before the back matter.
-  let chaps = query(heading.where(level: 1)).filter(h => h.numbering != none)
-  let stops = query(<thesis-tabstop>)
-  if stops.len() > 0 {
-    let cut = stops.first().location().page()
-    chaps = chaps.filter(c => c.location().page() < cut)
-  }
-  if chaps.len() == 0 { return none }
+  let entries = _tab-entries()
+  let n = entries.len()
 
   let active = 0
-  for (i, c) in chaps.enumerate() { if c.location().page() <= cur { active = i } }
+  for (i, e) in entries.enumerate() { if e.at(1).page() <= cur { active = i } }
   let on-right = tab-side == "right"
 
-  // Base colour of tab i: cycles through `colors` if given, else the accent.
-  let base = i => if colors != none { colors.at(calc.rem(i, colors.len())) } else { accent }
-  let lbl = numbering(pattern, active + 1)
+  // Label and colour of tab i. Without their own lists, front and back tabs
+  // continue the cycle of `colors` (or use the accent).
+  let nf = entries.filter(e => e.at(0) == "front").len()
+  let nc = entries.filter(e => e.at(0) == "chapter").len()
+  let cycle(list, k) = if list != none { list.at(calc.rem(k, list.len())) } else { none }
+  let info(i) = {
+    let kind = entries.at(i).at(0)
+    if kind == "front" {
+      (numbering(front-pattern, i + 1), if front-colors != none { cycle(front-colors, i) } else { cycle(colors, i) })
+    } else if kind == "chapter" {
+      (numbering(pattern, i - nf + 1), cycle(colors, i - nf))
+    } else {
+      (numbering(back-pattern, i - nf - nc + 1), if back-colors != none { cycle(back-colors, i - nf - nc) } else { cycle(colors, i - nf) })
+    }
+  }
+  let (lbl, col) = info(active)
+  let fill = if active-fill != none { active-fill } else if col != none { col } else { accent }
 
-  let tabs = range(chaps.len()).map(i => {
+  let gap = if n > 12 { 1.5mm } else { 2.5mm }
+  let avail = page.height - 44mm
+  let h = calc.min(12mm.to-absolute(), (avail.to-absolute() - gap.to-absolute() * (n - 1)) / n)
+  let lsize = calc.min(size.to-absolute(), h * 0.6)
+
+  let tabs = range(n).map(i => {
     let on = (i == active)
     box(
-      width: 8mm, height: 12mm,
-      fill: if on { if active-fill != none { active-fill } else { base(i) } } else { none },
+      width: 8mm, height: h,
+      fill: if on { fill } else { none },
       radius: if on { if on-right { (left: 5pt) } else { (right: 5pt) } } else { 0pt },
-      if on { align(center + horizon, text(font: font, size: size, fill: label-color, weight: "bold")[#lbl]) } else { [] },
+      if on { align(center + horizon, text(font: font, size: lsize, fill: label-color, weight: "bold")[#lbl]) } else { [] },
     )
   })
-  let strip = stack(dir: ttb, spacing: 2.5mm, ..tabs)
+  let strip = stack(dir: ttb, spacing: gap, ..tabs)
   if on-right { place(right + horizon, strip) } else { place(left + horizon, strip) }
 }
 
@@ -292,7 +328,7 @@
 // natural thumb edge — so nothing appears on left-tab pages or outside the
 // main matter. `flipbook` is a user function (page-number) => content.
 #let _flipbook(flipbook, size, tab-side, guide) = context {
-  if _tab-side-here(tab-side) != "right" { return none }
+  if _tab-side-here(tab-side, main-only: true) != "right" { return none }
   let n = here().page()
   let frame = if type(flipbook) == function { flipbook(n) } else { none }
   if frame == none and not guide { return none }
@@ -535,6 +571,7 @@
 // headings) followed by the entries. `depth: none` lists every level.
 #let tableofcontents(title: [Contents], depth: none) = {
   pagebreak(weak: true)
+  context if _matter.get() in ("front", "back") { _tabmark(_matter.get()) }
   context {
     v(_chapraise.get())
     block(below: 0.9cm, width: 100%)[
@@ -651,6 +688,7 @@
   set page(numbering: "i", number-align: bottom + center, header: none)
   counter(page).update(1)
   set heading(numbering: none)
+  _matter.update("front")
   body
 }
 
@@ -660,6 +698,7 @@
   set page(numbering: "1"); counter(page).update(1)
   counter(heading).update(0)
   set heading(numbering: "1.1")
+  _matter.update("main")
   body
 }
 
@@ -669,6 +708,7 @@
   set page(numbering: "1", number-align: bottom + center, header: none)
   set heading(numbering: none)
   _tabstop
+  _matter.update("back")
   body
 }
 
@@ -812,6 +852,10 @@
   tab-label-color: white,     // label colour on the active tab
   tab-colors: none,           // optional array: one base colour per chapter
                               //  (cycles when shorter than the chapter count)
+  tab-numbering-front: "i",   // labels of the front-matter tabs (from the TOC on)
+  tab-numbering-back: "I",    // labels of the back-matter tabs
+  tab-colors-front: none,     // colours of the front-matter tabs; none = continue
+  tab-colors-back: none,      //  the tab-colors cycle. Same for the back matter
   // ---- Flip-book (optional page-corner animation) ----
   flipbook: none,             // (page-number) => frame content; none = off
   flipbook-size: 18mm,
@@ -1082,9 +1126,11 @@
     header: _running-header(heading-font, margin),
     background: _side-tabs(
       accent: accent, font: heading-font, side: tab-side,
-      pattern: tab-numbering, size: tab-label-size,
+      pattern: tab-numbering, front-pattern: tab-numbering-front,
+      back-pattern: tab-numbering-back, size: tab-label-size,
       active-fill: tab-active-fill,
       label-color: tab-label-color, colors: tab-colors,
+      front-colors: tab-colors-front, back-colors: tab-colors-back,
     ),
     foreground: _flipbook(flipbook, flipbook-size, tab-side, flipbook-guide),
   )
@@ -1126,6 +1172,8 @@
     counter(figure.where(kind: image)).update(0)
     counter(figure.where(kind: table)).update(0)
     let is-chapter = (not is-app) and (it.numbering != none)
+    // Unnumbered sections of the front and back matter get a side tab.
+    if not is-app and it.numbering == none and _matter.get() in ("front", "back") { _tabmark(_matter.get()) }
     if is-chapter {
       counter("chap-app").update(0)   // appendix letters restart per chapter
       counter(footnote).update(0)     // footnotes restart at 1 each chapter (its

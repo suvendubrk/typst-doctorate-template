@@ -28,7 +28,7 @@ A thesis is a book: it has front matter, a main body divided into parts and chap
 ]
 ```)
 
-Inside the front and back matter, write headings as `#heading(numbering: none)[Preface]` or simply `= Preface`; they are unnumbered automatically and still appear in the table of contents.
+Inside the front and back matter, write headings as `#heading(numbering: none)[Preface]` or simply `= Preface`; they are unnumbered automatically, still appear in the table of contents, and each gets a side tab of its own. The tabs start at the table of contents, so title pages and dedications have none.
 
 == Parts <sec:structure-parts>
 
