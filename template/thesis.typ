@@ -97,6 +97,7 @@
 #let _eqbreak   = state("thesis-eq-break", auto)           // true in breakeq, false in nobreakeq
 #let _tabcolors = state("thesis-tab-colors", none)         // per-chapter tab colours, or none
 #let _matter    = state("thesis-matter", none)             // "front" | "main" | "back"
+#let _trimguide = state("thesis-trim-guide", false)        // outline the trim when bled
 
 // Marks a front- or back-matter section that gets its own side tab. Placed by
 // tableofcontents() and by every unnumbered level-1 heading in those matters.
@@ -270,12 +271,30 @@
   else { if calc.odd(cur) { "right" } else { "left" } }
 }
 
+// The bleed on each edge of the current page, as (left:, right:, top:,
+// bottom:). `page.bleed` is one length, or a dictionary that may name the
+// inside/outside edges, which swap between recto (odd) and verso pages.
+// Must be called inside a `context`.
+#let _bleed-here() = {
+  let b = page.bleed
+  let len(v) = if type(v) == relative { v.length } else { v }
+  if type(b) != dictionary { let v = len(b); return (left: v, right: v, top: v, bottom: v) }
+  let at(k) = len(b.at(k, default: 0pt))
+  let recto = calc.odd(here().page())
+  (
+    left: if "inside" in b { at(if recto { "inside" } else { "outside" }) } else { at("left") },
+    right: if "inside" in b { at(if recto { "outside" } else { "inside" }) } else { at("right") },
+    top: at("top"), bottom: at("bottom"),
+  )
+}
+
 // Vertical thumb index on the page edge (drawn in the page background).
 // One block per tab: the front-matter sections (labelled with `front-pattern`),
 // the chapters (`pattern`), and the back-matter sections (`back-pattern`). Only
 // the ACTIVE tab is filled and labelled; the rest stay invisible, so the stack
 // acts as a fixed ruler down the edge. Tabs are 8 mm × 12 mm and shrink when
-// there are too many to fit the page.
+// there are too many to fit the page. With a print bleed the tabs reach on
+// into it, so the trimmed page still shows the full 8 mm.
 #let _side-tabs(
   accent: black, font: "Libertinus Serif", side: "outer",
   pattern: "1", front-pattern: "i", back-pattern: "I", size: 9pt,
@@ -291,6 +310,7 @@
   let active = 0
   for (i, e) in entries.enumerate() { if e.at(1).page() <= cur { active = i } }
   let on-right = tab-side == "right"
+  let bleed = _bleed-here().at(if on-right { "right" } else { "left" })
 
   // Label and colour of tab i. Without their own lists, front and back tabs
   // continue the cycle of `colors` (or use the accent).
@@ -318,7 +338,8 @@
   let tabs = range(n).map(i => {
     let on = (i == active)
     box(
-      width: 8mm, height: h,
+      width: 8mm + bleed, height: h,
+      inset: if on-right { (right: bleed) } else { (left: bleed) },
       fill: if on { fill } else { none },
       radius: if on { if on-right { (left: 5pt) } else { (right: 5pt) } } else { 0pt },
       if on { align(center + horizon, text(font: font, size: lsize, fill: label-color, weight: "bold")[#lbl]) } else { [] },
@@ -342,7 +363,19 @@
     stroke: if guide and frame == none { 0.3pt + luma(75%) } else { none },
     if frame != none { frame } else { none },
   )
-  place(bottom + right, dx: -5mm, dy: -4mm, cell)
+  let bleed = _bleed-here()
+  place(bottom + right, dx: -5mm - bleed.right, dy: -4mm - bleed.bottom, cell)
+}
+
+// Trim guide (drawn in the page foreground): a hairline along the trim, on
+// every page, when the page has a bleed and `trim-guide` is on. It sits in the
+// foreground so fills and tabs never cover it. A proofing aid only: switch it
+// off for the file that goes to the printer.
+#let _trim-guide = context {
+  let b = _bleed-here()
+  if not _trimguide.get() or b.values().all(v => v == 0pt) { return none }
+  place(top + left, dx: b.left, dy: b.top,
+    rect(width: page.width, height: page.height, stroke: (paint: cmyk(0%, 100%, 0%, 0%), thickness: 0.15pt, dash: "dashed")))
 }
 
 // Running header. The folio (page number) sits at the OUTER corner. A recto
@@ -727,7 +760,7 @@
   // adjustments parts make, so this is stable across layout passes.
   context { _pstart.update(here().page()) }
   set page(
-    numbering: none, header: none, foreground: none, fill: rgb("#d5c1b765"),
+    numbering: none, header: none, foreground: _trim-guide, fill: rgb("#d5c1b765"),
     // An invisible marker on every page the divider occupies. Forced blank
     // leaves inherit the page settings, so they carry it too — letting us count
     // the divider's real page span instead of guessing it from page parity.
@@ -838,6 +871,16 @@
   page-width: auto,           // set both to override `paper` with a custom trim
   page-height: auto,          // (printers usually specify a trim, not a name)
   margin: (inside: 26mm, outside: 20mm, top: 24mm, bottom: 22mm),
+  bleed: 0mm,                 // print bleed beyond the trim, e.g. 2mm; 0mm =
+                              //  none. A length bleeds the outside, top and
+                              //  bottom edges only, never the spine; a
+                              //  dictionary sets the edges itself, e.g.
+                              //  (rest: 2mm) for all four. The PDF page grows
+                              //  by it and gets a TrimBox; page fills and the
+                              //  side tabs run on into it. Size and margins
+                              //  stay the trim's
+  trim-guide: false,          // with a bleed: outline the trim on every page
+                              //  (proofing only — off for the printer's file)
   // ---- Colours ----
   theme: "classic",           // key into `themes` (§ 1)
   accent: none,               // explicit accent colour; overrides `theme`
@@ -1126,6 +1169,7 @@
          (width: page-width, height: page-height)
        } else { (paper: paper) }),
     margin: margin,
+    bleed: if type(bleed) == dictionary { bleed } else { (inside: 0pt, rest: bleed) },
     numbering: "1",
     number-align: top + right,
     header: _running-header(heading-font, margin),
@@ -1137,7 +1181,7 @@
       label-color: tab-label-color, colors: tab-colors,
       front-colors: tab-colors-front, back-colors: tab-colors-back,
     ),
-    foreground: _flipbook(flipbook, flipbook-size, tab-side, flipbook-guide),
+    foreground: _flipbook(flipbook, flipbook-size, tab-side, flipbook-guide) + _trim-guide,
   )
 
   // ---- Headings ---------------------------------------------------------------
@@ -1256,6 +1300,7 @@
   _tabcolors.update(tab-colors)
   _headfont.update(heading-font)
   _chapraise.update(chapter-raise)
+  _trimguide.update(trim-guide)
 
   // ---- Equation numbering -------------------------------------------------------
   // "(<chapter>.<n>)" in chapters, "(<chapter>.<letter>.<n>)" in appendices —

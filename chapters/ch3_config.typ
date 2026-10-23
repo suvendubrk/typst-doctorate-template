@@ -28,6 +28,22 @@ All visual settings are arguments of the function `thesis()`. They are collected
 
 A font argument takes one name or a list of names; the first available one is used. The page size is either a named paper (`paper: "a4"`, `"iso-b5"`, ...) or an explicit trim, which wins when both `page-width` and `page-height` are given. Printers usually specify a trim and margins; copy them here. `inside` is the margin at the binding.
 
+=== Bleed <sec:config-bleed>
+
+Anything printed up to the edge of the page, such as a tinted page or a side tab, needs a bleed: the printer cuts the book after printing, so such ink must run a little past the trim or a white sliver may show. `bleed` adds this margin outside the trim. The PDF pages grow by it and carry a trim box that tells the printer where to cut, while the page size, margins and layout all stay those of the trim.
+
+#code(```typ
+#let conf = thesis.with(
+  page-width: 170mm, page-height: 240mm,
+  bleed: 2mm,                     // outside, top and bottom; not the spine
+  trim-guide: true,               // proofing only
+)
+```)
+
+A length bleeds the outside, top and bottom edges, which are cut, and leaves the spine edge flush, since it is bound rather than cut. A dictionary sets the edges itself, as in Typst's `page(bleed: ..)`: `(rest: 2mm)` bleeds all four, `(inside: 0mm, outside: 3mm, y: 2mm)` gives each its own. Page fills and the side tabs run on into the bleed; the tabs keep their full width on the trimmed page.
+
+`trim-guide: true` draws the trim as a thin dashed magenta line on every page, to check what will be cut. It is a proofing aid only: leave it off in the file that goes to the printer, which reads the trim from the PDF, and where a guide on the cut line could leave a coloured edge on the book. Typst's own previews (PNG, SVG and the Tinymist preview) show only the trimmed page; open the PDF to see the bleed.
+
 == Colours <sec:config-colours>
 
 The accent colour (chapter kickers, rules, tabs, mini-TOC) comes from a named theme or is given directly. Links (citations, references, URLs) use `link-color`, which defaults to the accent.
@@ -61,6 +77,8 @@ New themes are added to the dictionary `themes` in the template (@sec:internals-
   [`paper`], [`"iso-b5"`], [Named paper size.],
   [`page-width`, `page-height`], [`auto`], [Explicit trim; overrides `paper` when both are set.],
   [`margin`], [inside 26, outside 20, top 24, bottom 22 mm], [Page margins of a two-sided book.],
+  [`bleed`], [`0mm`], [Print bleed beyond the trim (@sec:config-bleed). A length bleeds outside, top and bottom; a dictionary sets each edge.],
+  [`trim-guide`], [`false`], [With a bleed, draw the trim as a dashed line (proofing only).],
   table.cell(colspan: 3)[_Colours_],
   [`theme`], [`"classic"`], [Key into `themes`.],
   [`accent`], [`none`], [Explicit accent colour; overrides `theme`.],

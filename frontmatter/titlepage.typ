@@ -1,6 +1,6 @@
 // Title pages. Replace with your own; universities often supply an official
 // title page (for the UvA: the Office of the Beadle) that must be used unchanged.
-#page(numbering: none, header: none, background: none, foreground: none)[
+#page(numbering: none, header: none, background: none)[
   #v(5cm)
   #align(center)[
     #text(size: 30pt)[typst-doctorate-template]
@@ -12,7 +12,7 @@
   #v(1fr)
   #align(center, text(size: 10pt, fill: luma(40%))[github.com/suvendubrk/typst-doctorate-template])
 ]
-#page(numbering: none, header: none, foreground: none, fill: luma(95%))[
+#page(numbering: none, header: none, fill: luma(95%))[
   #set text(size: 10pt)
   This page is the reverse of the title page. In a thesis it carries the
   copyright line, the printer and the funding acknowledgement.

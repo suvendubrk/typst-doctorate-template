@@ -158,6 +158,12 @@
   page-width: 170mm,
   page-height: 240mm,
   margin: (inside: 24mm, outside: 20mm, top: 24mm, bottom: 22mm),
+  // Print bleed: e.g. 2mm for the printer's file (the PDF grows by 2 mm at the
+  // outside, top and bottom, not the spine, with the trim marked); 0mm for an
+  // ordinary on-screen PDF. trim-guide draws the trim line while a bleed is
+  // set, for checking the layout; turn it off for the printer's file.
+  bleed: 0mm,
+  trim-guide: false,
   theme: "black",
   link-color: rgb("#9F3D1A"),
   // ---- Side tabs: only the active chapter shows, as a single coloured tab --
